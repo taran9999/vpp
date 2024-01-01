@@ -240,7 +240,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       h4 = (ip4_and_gre_header_t *) rewrite;
       gre = &h4->gre;
       h4->ip4.ip_version_and_header_length = 0x45;
-      h4->ip4.ttl = 254;
+      h4->ip4.ttl = t->hop_limit ? t->hop_limit : 254;
       h4->ip4.protocol = IP_PROTOCOL_GRE;
       /* fixup ip4 header length and checksum after-the-fact */
       h4->ip4.src_address.as_u32 = t->tunnel_src.ip4.as_u32;
@@ -258,7 +258,7 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
       gre = &h6->gre;
       h6->ip6.ip_version_traffic_class_and_flow_label =
 	clib_host_to_net_u32 (6 << 28);
-      h6->ip6.hop_limit = 255;
+      h6->ip6.hop_limit = t->hop_limit ? t->hop_limit : 255;
       h6->ip6.protocol = IP_PROTOCOL_GRE;
       /* fixup ip6 header length and checksum after-the-fact */
       h6->ip6.src_address.as_u64[0] = t->tunnel_src.ip6.as_u64[0];
@@ -274,8 +274,9 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
     }
   else
     {
-      gre->protocol =
-	clib_host_to_net_u16 (gre_proto_from_vnet_link (link_type));
+      gre->protocol = clib_host_to_net_u16 (
+        t->gre_protocol ? t->gre_protocol
+                        : gre_proto_from_vnet_link (link_type));
       gre->flags_and_version = 0; // Clear flags first
       /* Add key only for non-ERSPAN tunnels */
       if (gre_key_is_valid (t->gre_key))

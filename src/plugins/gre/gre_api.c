@@ -170,6 +170,8 @@ vl_api_gre_tunnel_add_del_v2_t_handler (vl_api_gre_tunnel_add_del_v2_t *mp)
   a->outer_table_id = ntohl (mp->tunnel.outer_table_id);
   a->flags = flags;
   a->gre_key = ntohl (mp->tunnel.key); // Key field present in v2 API
+  a->gre_protocol = ntohs (mp->tunnel.gre_protocol);
+  a->hop_limit = mp->tunnel.hop_limit;
 
   rv = vnet_gre_tunnel_add_del (a, &sw_if_index);
 

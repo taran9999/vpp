@@ -245,6 +245,18 @@ typedef struct
 
   u32 dev_instance;  /* Real device instance in tunnel vector */
   u32 user_instance; /* Instance name being shown to user */
+
+  /**
+   * Override GRE protocol/ethertype written into the encap header. 0 means
+   * derive it from the tunnel type / payload link type (default behaviour).
+   */
+  u16 gre_protocol;
+
+  /**
+   * Outer IPv4 TTL / IPv6 hop-limit written into the encap header. 0 means
+   * use the VPP default (254 for IPv4, 255 for IPv6).
+   */
+  u8 hop_limit;
 } gre_tunnel_t;
 
 typedef struct
@@ -385,6 +397,8 @@ typedef struct
   u16 session_id;
   gre_key_t gre_key;
   tunnel_encap_decap_flags_t flags;
+  u16 gre_protocol;
+  u8 hop_limit;
 } vnet_gre_tunnel_add_del_args_t;
 
 extern int vnet_gre_tunnel_add_del (vnet_gre_tunnel_add_del_args_t *a,

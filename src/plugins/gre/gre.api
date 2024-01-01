@@ -77,6 +77,10 @@ typedef gre_tunnel
     @param src - Source IP address
     @param dst - Destination IP address, can be multicast
     @param key - GRE key value (RFC 2890), 0 for no key
+    @param gre_protocol - override GRE protocol/ethertype in the encap header,
+                          0 to derive it from the tunnel type/payload link.
+    @param hop_limit - outer IPv4 TTL / IPv6 hop-limit to write into the encap
+                       header, 0 to use the VPP default (254 / 255).
 */
 typedef gre_tunnel_v2
 {
@@ -90,6 +94,8 @@ typedef gre_tunnel_v2
   vl_api_address_t src;
   vl_api_address_t dst;
   u32 key;
+  u16 gre_protocol;
+  u8 hop_limit;
 };
 
 /** \brief Add or delete a single GRE tunnel.

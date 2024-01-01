@@ -411,6 +411,8 @@ vnet_gre_tunnel_add (vnet_gre_tunnel_add_del_args_t *a, u32 outer_fib_index,
   t->type = a->type;
   t->mode = a->mode;
   t->flags = a->flags;
+  t->gre_protocol = a->gre_protocol;
+  t->hop_limit = a->hop_limit;
   if (t->type == GRE_TUNNEL_TYPE_ERSPAN)
     t->session_id = a->session_id;
 
