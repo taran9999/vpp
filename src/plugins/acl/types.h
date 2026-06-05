@@ -21,6 +21,7 @@
 typedef struct
 {
   u8 is_permit;
+  u32 mirror_sw_if_index;
   u8 is_ipv6;
   ip46_address_t src;
   u8 src_prefixlen;
