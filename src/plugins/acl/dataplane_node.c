@@ -559,6 +559,31 @@ acl_fa_inner_node_fn (vlib_main_t * vm,
 	    next[0] = action ? next[0] : 0;
 	  }
 
+    if (PREDICT_FALSE (action == 3)) 
+    {
+      pkts_acl_permit++;
+
+      acl_rule_t *mir_rule = &(am->acls[match_acl_in_index].rules[match_rule_index]);
+      u32 mirror_sw_if_index = mir_rule->mirror_sw_if_index;
+
+      if (mirror_sw_if_index != ~0)
+      {
+        vlib_buffer_t *clone = vlib_buffer_copy(vm, b[0]);
+        if (PREDICT_TRUE (clone != NULL))
+        {
+          vnet_buffer(clone)->sw_if_index[VLIB_TX] = mirror_sw_if_index;
+          clone->flags |= VNET_BUFFER_F_SPAN_CLONE;
+
+          vnet_main_t *vnm = vnet_get_main();
+          vlib_frame_t *f = vnet_get_frame_to_sw_interface(vnm, mirror_sw_if_index);
+          u32 *to_next = vlib_frame_vector_args(f);
+          to_next += f->n_vectors;
+          to_next[0] = vlib_get_buffer_index(vm, clone);
+          f->n_vectors++;
+        }
+      }
+    }
+
 	  if (node_trace_on)	// PREDICT_FALSE (node->flags & VLIB_NODE_FLAG_TRACE))
 	    {
 	      maybe_trace_buffer (vm, node, b[0], sw_if_index[0], lc_index0,

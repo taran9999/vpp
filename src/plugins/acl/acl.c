@@ -344,6 +344,8 @@ acl_add_list (u32 count, vl_api_acl_rule_t rules[],
       if (ntohs (rules[i].dstport_or_icmpcode_first) >
 	  ntohs (rules[i].dstport_or_icmpcode_last))
 	return VNET_API_ERROR_INVALID_VALUE_2;
+      if (rules[i].is_permit == 3 && rules[i].mirror_sw_if_index == ~0)
+	return VNET_API_ERROR_INVALID_VALUE;
     }
 
   if (*acl_list_index != ~0)
@@ -374,6 +376,8 @@ acl_add_list (u32 count, vl_api_acl_rule_t rules[],
       r = vec_elt_at_index (acl_new_rules, i);
       clib_memset (r, 0, sizeof (*r));
       r->is_permit = rules[i].is_permit;
+      r->mirror_sw_if_index =
+	(rules[i].is_permit == 3) ? ntohl (rules[i].mirror_sw_if_index) : ~0;
       r->is_ipv6 = rules[i].src_prefix.address.af;
       ip_address_decode (&rules[i].src_prefix.address, &r->src);
       ip_address_decode (&rules[i].dst_prefix.address, &r->dst);
