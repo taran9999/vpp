@@ -35,7 +35,7 @@ $(D)/$($1_tarball):
 		then cp $(DL_CACHE_DIR)/$($1_tarball) $$@ ; \
 	else \
 		echo "Downloading $($1_url)" ; \
-		curl -o $$@ -LO $($1_url) ; \
+		curl -L -o $$@ $($1_url) ; \
 	fi
 	@rm -f $(B)/.$1.download.ok
 

@@ -1245,9 +1245,6 @@ lcp_ethertype_enable (ethernet_type_t ethertype)
   if (!eti)
     return VNET_API_ERROR_INVALID_VALUE;
 
-  if (eti->node_index != ~0 && eti->node_index != node->index)
-    return VNET_API_ERROR_INVALID_REGISTRATION;
-
   ethernet_register_input_type (vm, ethertype, node->index);
   return 0;
 }

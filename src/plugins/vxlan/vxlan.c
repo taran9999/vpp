@@ -43,7 +43,7 @@
  */
 
 
-vxlan_main_t vxlan_main;
+__clib_export vxlan_main_t vxlan_main;
 
 static u32
 vxlan_eth_flag_change (vnet_main_t *vnm, vnet_hw_interface_t *hi, u32 flags)

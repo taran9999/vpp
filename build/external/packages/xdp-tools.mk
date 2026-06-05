@@ -25,7 +25,7 @@ define  xdp-tools_config_cmds
 endef
 
 define  xdp-tools_build_cmds
-	@cd ${xdp-tools_src_dir} && $(MAKE) CC=gcc V=1 BUILD_STATIC_ONLY=y PREFIX='$(xdp-tools_install_dir)' > $(xdp-tools_build_log)
+	@cd ${xdp-tools_src_dir} && $(MAKE) CC=gcc FORCE_SUBDIR_LIBBPF=1 V=1 BUILD_STATIC_ONLY=y PREFIX='$(xdp-tools_install_dir)' > $(xdp-tools_build_log)
 endef
 
 define  xdp-tools_install_cmds
