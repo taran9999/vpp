@@ -18,6 +18,7 @@ option version = "1.0.0";
 
 import "vnet/ip/ip_types.api";
 import "vnet/ethernet/ethernet_types.api";
+import "vnet/interface_types.api";
 
 enum acl_action : u8
 {
