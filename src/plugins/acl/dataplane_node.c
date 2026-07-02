@@ -568,7 +568,28 @@ acl_fa_inner_node_fn (vlib_main_t * vm,
 
       if (mirror_sw_if_index != ~0)
       {
+        /* The ACL feature runs on the ip4/ip6-unicast arc, so b[0]->current_data
+         * already points at the L3 header; the original L2 (Ethernet) frame sits
+         * in the buffer headroom before current_data. vlib_buffer_copy() only
+         * copies from current_data forward, so a plain clone would carry the L3
+         * packet only. Rewind the original buffer to l2_hdr_offset before cloning
+         * (so the clone captures the full L2 frame the ERSPAN/GRE tunnel expects),
+         * then restore the original position. */
+        word l2_rewind = 0;
+        if (PREDICT_TRUE (b[0]->flags & VNET_BUFFER_F_L2_HDR_OFFSET_VALID))
+        {
+          l2_rewind = (word) b[0]->current_data - vnet_buffer(b[0])->l2_hdr_offset;
+          if (l2_rewind > 0)
+            vlib_buffer_advance(b[0], -l2_rewind);
+          else
+            l2_rewind = 0;
+        }
+
         vlib_buffer_t *clone = vlib_buffer_copy(vm, b[0]);
+
+        if (l2_rewind > 0)
+          vlib_buffer_advance(b[0], l2_rewind);
+
         if (PREDICT_TRUE (clone != NULL))
         {
           vnet_buffer(clone)->sw_if_index[VLIB_TX] = mirror_sw_if_index;
@@ -580,6 +601,7 @@ acl_fa_inner_node_fn (vlib_main_t * vm,
           to_next += f->n_vectors;
           to_next[0] = vlib_get_buffer_index(vm, clone);
           f->n_vectors++;
+          vnet_put_frame_to_sw_interface(vnm, mirror_sw_if_index, f);
         }
       }
     }
