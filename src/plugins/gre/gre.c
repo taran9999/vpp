@@ -269,8 +269,21 @@ gre_build_rewrite (vnet_main_t *vnm, u32 sw_if_index, vnet_link_t link_type,
 
   if (PREDICT_FALSE (t->type == GRE_TUNNEL_TYPE_ERSPAN))
     {
-      gre->protocol = clib_host_to_net_u16 (GRE_PROTOCOL_erspan);
-      gre->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_SEQUENCE);
+      if (t->gre_protocol)
+	{
+	  /* SONiC Everflow "ERSPAN": emit plain GRE carrying the configured
+	   * protocol (e.g. 0x88BE) with NO sequence number. The ERSPAN
+	   * type-II shim is likewise suppressed in gre_encap_inline. This keeps
+	   * the ERSPAN tunnel's working L2 delivery path while producing a
+	   * plain-GRE-over-raw-L2 packet. */
+	  gre->protocol = clib_host_to_net_u16 (t->gre_protocol);
+	  gre->flags_and_version = 0;
+	}
+      else
+	{
+	  gre->protocol = clib_host_to_net_u16 (GRE_PROTOCOL_erspan);
+	  gre->flags_and_version = clib_host_to_net_u16 (GRE_FLAGS_SEQUENCE);
+	}
     }
   else
     {
@@ -563,7 +576,7 @@ gre_encap_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
       vnet_buffer (b[0])->ip.adj_index[VLIB_TX] = adj_index[0];
       vnet_buffer (b[1])->ip.adj_index[VLIB_TX] = adj_index[1];
 
-      if (type == GRE_TUNNEL_TYPE_ERSPAN)
+      if (type == GRE_TUNNEL_TYPE_ERSPAN && gt[0]->gre_protocol == 0)
 	{
 	  /* Encap GRE seq# and ERSPAN type II header */
 	  erspan_t2_t *h0;
@@ -577,7 +590,7 @@ gre_encap_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
 	  h0->t2_u64 = hdr;
 	  h0->t2.cos_en_t_session |= clib_host_to_net_u16 (gt[0]->session_id);
 	}
-      if (type == GRE_TUNNEL_TYPE_ERSPAN)
+      if (type == GRE_TUNNEL_TYPE_ERSPAN && gt[1]->gre_protocol == 0)
 	{
 	  /* Encap GRE seq# and ERSPAN type II header */
 	  erspan_t2_t *h0;
@@ -628,7 +641,7 @@ gre_encap_inline (vlib_main_t *vm, vlib_node_runtime_t *node,
 
       vnet_buffer (b[0])->ip.adj_index[VLIB_TX] = adj_index[0];
 
-      if (type == GRE_TUNNEL_TYPE_ERSPAN)
+      if (type == GRE_TUNNEL_TYPE_ERSPAN && gt[0]->gre_protocol == 0)
 	{
 	  /* Encap GRE seq# and ERSPAN type II header */
 	  erspan_t2_t *h0;
