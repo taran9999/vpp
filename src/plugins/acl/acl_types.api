@@ -45,6 +45,15 @@ typedef acl_rule
 {
   vl_api_acl_action_t is_permit;
   vl_api_interface_index_t mirror_sw_if_index;
+/*
+ * For is_permit == PERMIT_MIRROR (3) only: optional ingress-port restriction
+ * (SAI SAI_ACL_ENTRY_ATTR_FIELD_IN_PORT/IN_PORTS, used by Everflow per-interface
+ * mirroring). mirror_n_in_ports == 0 means "match any ingress port" (default).
+ * When > 0, the packet is mirrored only if its RX sw_if_index is one of the
+ * first mirror_n_in_ports entries of mirror_in_ports.
+ */
+  u32 mirror_n_in_ports;
+  vl_api_interface_index_t mirror_in_ports[64];
   vl_api_prefix_t src_prefix;
   vl_api_prefix_t dst_prefix;
 /*

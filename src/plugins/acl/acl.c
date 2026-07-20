@@ -378,6 +378,12 @@ acl_add_list (u32 count, vl_api_acl_rule_t rules[],
       r->is_permit = rules[i].is_permit;
       r->mirror_sw_if_index =
 	(rules[i].is_permit == 3) ? ntohl (rules[i].mirror_sw_if_index) : ~0;
+      r->mirror_n_in_ports =
+	(rules[i].is_permit == 3) ? ntohl (rules[i].mirror_n_in_ports) : 0;
+      if (r->mirror_n_in_ports > 64)
+	r->mirror_n_in_ports = 64;
+      for (u32 mp_i = 0; mp_i < r->mirror_n_in_ports; mp_i++)
+	r->mirror_in_ports[mp_i] = ntohl (rules[i].mirror_in_ports[mp_i]);
       r->is_ipv6 = rules[i].src_prefix.address.af;
       ip_address_decode (&rules[i].src_prefix.address, &r->src);
       ip_address_decode (&rules[i].dst_prefix.address, &r->dst);

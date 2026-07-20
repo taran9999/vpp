@@ -22,6 +22,10 @@ typedef struct
 {
   u8 is_permit;
   u32 mirror_sw_if_index;
+  /* Ingress-port restriction for PERMIT_MIRROR rules (SAI IN_PORTS).
+   * mirror_n_in_ports == 0 => match any ingress port. */
+  u32 mirror_n_in_ports;
+  u32 mirror_in_ports[64];
   u8 is_ipv6;
   ip46_address_t src;
   u8 src_prefixlen;

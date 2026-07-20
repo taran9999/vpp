@@ -566,7 +566,28 @@ acl_fa_inner_node_fn (vlib_main_t * vm,
       acl_rule_t *mir_rule = &(am->acls[match_acl_in_index].rules[match_rule_index]);
       u32 mirror_sw_if_index = mir_rule->mirror_sw_if_index;
 
-      if (mirror_sw_if_index != ~0)
+      /* Honor the SAI IN_PORTS ingress-port restriction (Everflow per-interface
+       * mirroring): when the rule lists specific ingress ports, only mirror
+       * packets that arrived on one of them. mirror_n_in_ports == 0 means
+       * "match any ingress port" (default). sw_if_index[0] is the RX interface
+       * on the input ACL arc used by ingress mirroring. */
+      int mir_in_port_ok = 1;
+      if (mir_rule->mirror_n_in_ports > 0)
+      {
+        mir_in_port_ok = 0;
+        for (u32 mp_i = 0; mp_i < mir_rule->mirror_n_in_ports; mp_i++)
+        {
+          if (mir_rule->mirror_in_ports[mp_i] == sw_if_index[0])
+          {
+            mir_in_port_ok = 1;
+            break;
+          }
+        }
+      }
+
+      if (mirror_sw_if_index != ~0 && mir_in_port_ok &&
+          vnet_sw_interface_is_valid (vnet_get_main (), mirror_sw_if_index) &&
+          vnet_sw_interface_is_admin_up (vnet_get_main (), mirror_sw_if_index))
       {
         /* The ACL feature runs on the ip4/ip6-unicast arc, so b[0]->current_data
          * already points at the L3 header; the original L2 (Ethernet) frame sits
